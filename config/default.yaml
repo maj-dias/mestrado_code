@@ -1,0 +1,57 @@
+# Configuração de Dados
+data:
+  directory: "data/raw"
+  start_date: "2020-03-01"      # Início dos casos significativos
+  end_date: "2020-12-31"        # Final da primeira onda
+  population: 210147125         # População do Brasil (2019)
+  smooth_window: 7              # Janela de média móvel (dias)
+  use_smoothing: true           # Aplicar suavização nos dados
+
+# Configuração do Modelo SIR
+model:
+  name: "SIR"
+  # Condições iniciais (null = auto-detectar dos dados)
+  initial_conditions:
+    S0: null
+    I0: null
+    R0: null
+
+# Configuração de Identificação
+identification:
+  method: "least_squares"
+
+  # Chutes iniciais para otimização
+  initial_guess:
+    beta: 0.25                  # Taxa de transmissão inicial
+    gamma: 0.071                # Taxa de recuperação (~14 dias)
+
+  # Limites dos parâmetros
+  bounds:
+    beta: [0.001, 2.0]
+    gamma: [0.001, 1.0]
+
+  # Configurações do otimizador
+  optimizer:
+    algorithm: "L-BFGS-B"       # Opções: L-BFGS-B, TNC, SLSQP
+    maxiter: 1000
+    ftol: 1.0e-9
+    gtol: 1.0e-9
+
+# Configuração de Saída
+output:
+  results_dir: "results"
+  save_parameters: true
+  save_figures: true
+  save_metrics: true
+
+  # Configurações de figuras
+  figures:
+    format: "png"
+    dpi: 300
+    figsize: [12, 8]
+    style: "seaborn-v0_8"
+
+# Logging
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(levelname)s - %(message)s"

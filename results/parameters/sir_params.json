@@ -1,0 +1,86 @@
+{
+  "beta": 0.1810007194961849,
+  "gamma": 0.04439947169578708,
+  "R0": 4.076641288354778,
+  "infectious_period_days": 22.522790515430543,
+  "cost": 8.916741768350619e+18,
+  "success": true,
+  "message": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH",
+  "iterations": 8,
+  "metrics": {
+    "r2": 0.3907648772975618,
+    "rmse": 120705590.13885391,
+    "mape_I": 1516986161.558496,
+    "rss": 8.916741768350619e+18
+  },
+  "config": {
+    "data": {
+      "directory": "data/raw",
+      "start_date": "2020-03-01",
+      "end_date": "2020-12-31",
+      "population": 210147125,
+      "smooth_window": 7,
+      "use_smoothing": true
+    },
+    "model": {
+      "name": "SIR",
+      "initial_conditions": {
+        "S0": null,
+        "I0": null,
+        "R0": null
+      }
+    },
+    "identification": {
+      "method": "least_squares",
+      "initial_guess": {
+        "beta": 0.25,
+        "gamma": 0.071
+      },
+      "bounds": {
+        "beta": [
+          0.001,
+          2.0
+        ],
+        "gamma": [
+          0.001,
+          1.0
+        ]
+      },
+      "optimizer": {
+        "algorithm": "L-BFGS-B",
+        "maxiter": 1000,
+        "ftol": 1e-09,
+        "gtol": 1e-09
+      }
+    },
+    "output": {
+      "results_dir": "results",
+      "save_parameters": true,
+      "save_figures": true,
+      "save_metrics": true,
+      "figures": {
+        "format": "png",
+        "dpi": 300,
+        "figsize": [
+          12,
+          8
+        ],
+        "style": "seaborn-v0_8"
+      }
+    },
+    "logging": {
+      "level": "INFO",
+      "format": "%(asctime)s - %(levelname)s - %(message)s"
+    }
+  },
+  "data_period": {
+    "start": "2020-03-01",
+    "end": "2020-12-31",
+    "days": 306
+  },
+  "initial_conditions": {
+    "S0": 210147122.75,
+    "I0": 1.0,
+    "R0": 1.25
+  }
+}
