@@ -240,3 +240,108 @@ def prepare_sir_data(
         'R': R,
         'population': population
     }
+
+
+def prepare_seir_data(
+    df: pd.DataFrame,
+    population: float,
+    smooth: bool = True,
+    window: int = 7
+) -> Dict[str, np.ndarray]:
+    """
+    Converte dados COVID-19 para compartimentos SEIR
+
+    A lógica de conversão:
+    - R(t) = Recuperadosnovos.cumsum() + obitosAcumulado (removidos da transmissão)
+    - I(t) = casosAcumulado - R(t) (infectados ativos)
+    - E(t) = 0 (expostos - não observável diretamente, será estimado pelo modelo)
+    - S(t) = N - E(t) - I(t) - R(t) (suscetíveis)
+
+    Parâmetros
+    ----------
+    df : pd.DataFrame
+        DataFrame com dados COVID-19
+    population : float
+        População total
+    smooth : bool, default=True
+        Se True, aplica suavização nos dados
+    window : int, default=7
+        Tamanho da janela para média móvel
+
+    Retorna
+    -------
+    dict
+        Dicionário com:
+        - 'time': np.ndarray - Dias desde o início (0, 1, 2, ...)
+        - 'dates': pd.DatetimeIndex - Datas correspondentes
+        - 'S': np.ndarray - Suscetíveis
+        - 'E': np.ndarray - Expostos (inicializado em 0)
+        - 'I': np.ndarray - Infectados
+        - 'R': np.ndarray - Removidos
+        - 'population': float - População total
+    """
+    # Calcular compartimentos I e R (mesma lógica do SIR)
+
+    # Recuperados acumulados (somar novos recuperados ao longo do tempo)
+    if 'Recuperadosnovos' in df.columns:
+        recuperados_acumulado = df['Recuperadosnovos'].cumsum().values
+    else:
+        # Se não houver dados de recuperados, usar estimativa
+        recuperados_acumulado = np.zeros(len(df))
+
+    # Óbitos acumulados
+    obitos_acumulado = df['obitosAcumulado'].values
+
+    # Casos acumulados
+    casos_acumulado = df['casosAcumulado'].values
+
+    # R(t) = Recuperados + Óbitos (removidos da transmissão)
+    R = recuperados_acumulado + obitos_acumulado
+
+    # I(t) = Casos acumulados - Removidos
+    I = casos_acumulado - R
+
+    # Garantir que I não seja negativo
+    I = np.maximum(I, 0)
+
+    # E(t) = 0 (expostos - não observável, será estimado na otimização)
+    # Inicializamos com zeros pois não temos dados diretos de expostos
+    E = np.zeros_like(I)
+
+    # S(t) = População - E(t) - I(t) - R(t)
+    S = population - E - I - R
+
+    # Garantir que S não seja negativo
+    S = np.maximum(S, 0)
+
+    # Aplicar suavização se solicitado
+    if smooth:
+        S = smooth_data(S, window)
+        E = smooth_data(E, window)
+        I = smooth_data(I, window)
+        R = smooth_data(R, window)
+
+    # Validação: S + E + I + R deve estar próximo de N
+    total = S + E + I + R
+    discrepancia = np.abs(total - population)
+    max_discrepancia = np.max(discrepancia)
+
+    if max_discrepancia > population * 0.01:  # Mais de 1% de erro
+        print(f"Aviso: Discrepância máxima de {max_discrepancia:,.0f} "
+              f"({max_discrepancia/population*100:.2f}%) na soma S+E+I+R")
+
+    # Criar array de tempo (dias desde o início)
+    time = np.arange(len(df))
+
+    # Datas correspondentes
+    dates = pd.DatetimeIndex(df['data'])
+
+    return {
+        'time': time,
+        'dates': dates,
+        'S': S,
+        'E': E,
+        'I': I,
+        'R': R,
+        'population': population
+    }

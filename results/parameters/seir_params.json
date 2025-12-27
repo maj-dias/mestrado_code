@@ -1,0 +1,95 @@
+{
+  "beta": 0.8261604362935842,
+  "sigma": 0.056901137043023985,
+  "gamma": 0.13124291235442517,
+  "R0": 6.294895636440272,
+  "infectious_period_days": 7.619459078288905,
+  "incubation_period_days": 17.574341251632315,
+  "cost": 8.458565247187902e+18,
+  "success": true,
+  "message": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH",
+  "iterations": 27,
+  "metrics": {
+    "r2": 0.4220697234332571,
+    "rmse": 117563536.2024496,
+    "mape_I": 522194846.133228,
+    "rss": 8.458565247187902e+18
+  },
+  "config": {
+    "data": {
+      "directory": "data/raw",
+      "start_date": "2020-03-01",
+      "end_date": "2020-12-31",
+      "population": 210147125,
+      "smooth_window": 7,
+      "use_smoothing": true
+    },
+    "model": {
+      "name": "SEIR",
+      "initial_conditions": {
+        "S0": null,
+        "E0": 0,
+        "I0": null,
+        "R0": null
+      }
+    },
+    "identification": {
+      "method": "least_squares",
+      "initial_guess": {
+        "beta": 0.25,
+        "sigma": 0.2,
+        "gamma": 0.071
+      },
+      "bounds": {
+        "beta": [
+          0.001,
+          2.0
+        ],
+        "sigma": [
+          0.05,
+          1.0
+        ],
+        "gamma": [
+          0.001,
+          1.0
+        ]
+      },
+      "optimizer": {
+        "algorithm": "L-BFGS-B",
+        "maxiter": 1000,
+        "ftol": 1e-09,
+        "gtol": 1e-09
+      }
+    },
+    "output": {
+      "results_dir": "results",
+      "save_parameters": true,
+      "save_figures": true,
+      "save_metrics": true,
+      "figures": {
+        "format": "png",
+        "dpi": 300,
+        "figsize": [
+          12,
+          8
+        ],
+        "style": "seaborn-v0_8"
+      }
+    },
+    "logging": {
+      "level": "INFO",
+      "format": "%(asctime)s - %(levelname)s - %(message)s"
+    }
+  },
+  "data_period": {
+    "start": "2020-03-01",
+    "end": "2020-12-31",
+    "days": 306
+  },
+  "initial_conditions": {
+    "S0": 210147122.75,
+    "E0": 0.0,
+    "I0": 1.0,
+    "R0": 1.25
+  }
+}
