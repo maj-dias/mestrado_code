@@ -1,0 +1,80 @@
+# Configuração para Identificação de Parâmetros - SIDARTHE
+# Modelo SIDARTHE com 8 compartimentos para COVID-19
+
+# Modelo
+model:
+  name: "SIDARTHE"
+  description: "Susceptible-Infected-Diagnosed-Ailing-Recognized-Threatened-Healed-Extinct"
+  compartments: 8  # S, I, D, A, R, T, H, E
+  parameters: 12   # α, β, ε, ζ, η, λ, μ, ρ, θ, κ, ν, τ
+  reference: "Giordano et al. (2020), Nature Medicine"
+
+# Dados
+data:
+  # Dados serão carregados de data/raw/ usando data_loader
+  start_date: "2020-03-01"  # Início da epidemia no Brasil
+  end_date: "2020-06-30"    # Primeiro trimestre completo
+  population: 210147125     # População do Brasil (IBGE 2020)
+
+# Otimização
+optimization:
+  # Fase 1: Busca Global
+  global_method: "differential_evolution"
+  global_maxiter: 100  # Número de gerações
+  global_population: 15  # Tamanho da população
+
+  # Fase 2: Refinamento Local
+  local_method: "L-BFGS-B"
+  local_maxiter: 1000  # Iterações de refinamento
+
+  # Pesos dos observáveis na função objetivo
+  # J = w_cases·MSE(casos) + w_deaths·MSE(mortes) + ...
+  weights:
+    cases: 1.0          # Casos confirmados (dependem de política de testes)
+    deaths: 10.0        # Mortes (mais confiáveis - registro obrigatório)
+    recovered: 0.5      # Recuperados (frequentemente subnotificados)
+    active: 0.5         # Casos ativos (calculado, pode ter ruído)
+    hospitalized: 5.0   # Hospitalizações (bem documentadas, se disponível)
+
+  # Limites dos parâmetros (ver docs/identificacao_sidarthe.md)
+  parameter_bounds:
+    alpha:    [0.01, 1.0]    # Taxa de transmissão assintomáticos
+    beta:     [0.01, 1.0]    # Taxa de transmissão sintomáticos
+    epsilon:  [0.001, 0.5]   # Taxa de detecção assintomáticos
+    zeta:     [0.05, 0.5]    # Taxa de desenvolvimento de sintomas
+    eta:      [0.001, 0.5]   # Taxa de detecção sintomáticos
+    lambda_:  [0.01, 0.3]    # Taxa de cura não detectados
+    mu:       [0.01, 0.3]    # Taxa de cura sintomáticos não detectados
+    rho:      [0.01, 0.3]    # Taxa de cura detectados
+    theta:    [0.001, 0.1]   # Taxa de agravamento D→T
+    kappa:    [0.001, 0.1]   # Taxa de agravamento R→T
+    nu:       [0.01, 0.3]    # Taxa de cura casos graves
+    tau:      [0.001, 0.05]  # Taxa de mortalidade
+
+# Condições Iniciais
+initial_conditions:
+  method: "heuristic"  # Estimativa heurística baseada em dados
+  # Alternativa: "fixed" com valores especificados
+
+# Saída
+output:
+  directory: "results/parameters"
+  save_fit_plot: true
+  save_trajectories: true
+  save_metrics: true
+
+  # Configurações de figuras
+  figures:
+    format: "png"
+    dpi: 300
+    figsize: [14, 10]
+    save_dir: "results/figures/identification/sidarthe"
+
+# Validação
+validation:
+  # Percentual dos dados para validação out-of-sample
+  test_size: 0.2  # Últimos 20% dos dados
+
+  # Análise de sensibilidade
+  sensitivity_analysis: true
+  sensitivity_perturbation: 0.1  # Variar parâmetros ±10%

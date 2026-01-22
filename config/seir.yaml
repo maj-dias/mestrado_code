@@ -53,6 +53,7 @@ output:
     dpi: 300
     figsize: [12, 8]
     style: "seaborn-v0_8"
+    save_dir: "results/figures/identification/seir"  # Pasta organizada por modelo
 
 # Logging
 logging:

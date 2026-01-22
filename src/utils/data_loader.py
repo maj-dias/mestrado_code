@@ -345,3 +345,72 @@ def prepare_seir_data(
         'R': R,
         'population': population
     }
+
+
+def prepare_sidarthe_data(
+    df: pd.DataFrame,
+    smooth: bool = True,
+    window: int = 7
+) -> pd.DataFrame:
+    """
+    Converte dados COVID-19 para formato adequado ao modelo SIDARTHE
+
+    O modelo SIDARTHE precisa de:
+    - confirmed: Casos confirmados totais (D + R + T + H + E)
+    - active: Casos ativos (D + R + T)
+    - deaths: Mortes acumuladas (E)
+    - recovered: Recuperados (H)
+
+    Parâmetros
+    ----------
+    df : pd.DataFrame
+        DataFrame com dados COVID-19 brutos
+    smooth : bool, default=True
+        Se True, aplica suavização nos dados
+    window : int, default=7
+        Tamanho da janela para média móvel
+
+    Retorna
+    -------
+    pd.DataFrame
+        DataFrame com colunas: date, confirmed, deaths, recovered, active
+    """
+    # Extrair dados brutos
+    dates = pd.DatetimeIndex(df['data'])
+    casos_acumulado = df['casosAcumulado'].values
+    obitos_acumulado = df['obitosAcumulado'].values
+
+    # Recuperados acumulados
+    # IMPORTANTE: 'Recuperadosnovos' já é acumulado apesar do nome!
+    if 'Recuperadosnovos' in df.columns:
+        recuperados_acumulado = df['Recuperadosnovos'].values
+    else:
+        # Estimativa: 80% dos casos confirmados não fatais se recuperam
+        # após 14 dias (aproximação grosseira)
+        recuperados_acumulado = np.zeros(len(df))
+        for i in range(14, len(df)):
+            casos_14_dias_atras = casos_acumulado[i-14]
+            obitos_ate_agora = obitos_acumulado[i]
+            recuperados_acumulado[i] = max(0, casos_14_dias_atras * 0.8 - obitos_ate_agora)
+
+    # Casos ativos = Casos acumulados - Recuperados - Óbitos
+    ativos = casos_acumulado - recuperados_acumulado - obitos_acumulado
+    ativos = np.maximum(ativos, 0)  # Garantir não-negatividade
+
+    # Aplicar suavização se solicitado
+    if smooth:
+        casos_acumulado = smooth_data(casos_acumulado, window)
+        obitos_acumulado = smooth_data(obitos_acumulado, window)
+        recuperados_acumulado = smooth_data(recuperados_acumulado, window)
+        ativos = smooth_data(ativos, window)
+
+    # Criar DataFrame no formato esperado pelo SIDARTHE
+    df_sidarthe = pd.DataFrame({
+        'date': dates,
+        'confirmed': casos_acumulado,
+        'deaths': obitos_acumulado,
+        'recovered': recuperados_acumulado,
+        'active': ativos
+    })
+
+    return df_sidarthe

@@ -143,7 +143,7 @@ def main():
 
         # Interpretação de R₀
         if results['R0'] > 1:
-            interpretacao = "⚠️  Epidemia em crescimento (R₀ > 1)"
+            interpretacao = "ALERTA: Epidemia em crescimento (R₀ > 1)"
         elif results['R0'] < 1:
             interpretacao = "✓ Epidemia em declínio (R₀ < 1)"
         else:
@@ -205,7 +205,7 @@ def main():
         # 7. Gerar gráficos
         if config['output']['save_figures']:
             logger.info("\n📊 Gerando gráficos...")
-            figures_dir = results_dir / 'figures'
+            figures_dir = results_dir / 'figures' / 'identification' / 'sir'
 
             generate_identification_report(
                 results=results,
@@ -217,13 +217,13 @@ def main():
             logger.info(f"   ✓ Gráficos salvos em: {figures_dir}")
 
         logger.info("\n" + "=" * 70)
-        logger.info("✅ IDENTIFICAÇÃO CONCLUÍDA COM SUCESSO!")
+        logger.info("IDENTIFICAÇÃO CONCLUÍDA COM SUCESSO!")
         logger.info("=" * 70)
 
         return 0
 
     except Exception as e:
-        logger.error(f"\n❌ ERRO: {str(e)}")
+        logger.error(f"\nERRO: {str(e)}")
         import traceback
         logger.error(traceback.format_exc())
         return 1

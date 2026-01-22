@@ -107,7 +107,7 @@ def main():
 
         logger.info(f"✓ Período: {seir_data['dates'][0].date()} a {seir_data['dates'][-1].date()}")
         logger.info(f"✓ Número de dias: {len(seir_data['time'])}")
-        logger.info(f"\n📊 Condições iniciais:")
+        logger.info(f"\nCondicoes iniciais:")
         logger.info(f"   S₀ = {seir_data['S'][0]:>15,.0f} suscetíveis")
         logger.info(f"   E₀ = {seir_data['E'][0]:>15,.0f} expostos")
         logger.info(f"   I₀ = {seir_data['I'][0]:>15,.0f} infectados")
@@ -115,7 +115,7 @@ def main():
         logger.info(f"   N  = {seir_data['population']:>15,.0f} população total")
 
         # 4. Executar identificação
-        logger.info("\n🎯 Iniciando identificação de parâmetros...")
+        logger.info("\nIniciando identificacao de parametros...")
         logger.info(f"   Método: {config['identification']['method']}")
         logger.info(f"   Otimizador: {config['identification']['optimizer']['algorithm']}")
         logger.info(f"   Chute inicial: β={config['identification']['initial_guess']['beta']:.4f}, "
@@ -139,7 +139,7 @@ def main():
         logger.info("=" * 70)
         logger.info(f"Status: {'✓ SUCESSO' if results['success'] else '✗ FALHA'}")
 
-        logger.info(f"\n🔍 Parâmetros estimados:")
+        logger.info(f"\nParametros estimados:")
         logger.info(f"   β (taxa de transmissão)   = {results['beta']:.6f}")
         logger.info(f"   σ (taxa de incubação)     = {results['sigma']:.6f}")
         logger.info(f"   γ (taxa de recuperação)   = {results['gamma']:.6f}")
@@ -147,7 +147,7 @@ def main():
 
         # Interpretação de R₀
         if results['R0'] > 1:
-            interpretacao = "⚠️  Epidemia em crescimento (R₀ > 1)"
+            interpretacao = "ALERTA: Epidemia em crescimento (R0 > 1)"
         elif results['R0'] < 1:
             interpretacao = "✓ Epidemia em declínio (R₀ < 1)"
         else:
@@ -162,7 +162,7 @@ def main():
         periodo_incubacao = 1 / results['sigma']
         logger.info(f"   Período de incubação: {periodo_incubacao:.1f} dias")
 
-        logger.info(f"\n📊 Métricas de ajuste:")
+        logger.info(f"\nMetricas de ajuste:")
         logger.info(f"   R² (coef. determinação) = {results['metrics']['r2']:.4f}")
         logger.info(f"   RMSE                    = {results['metrics']['rmse']:,.2f}")
         logger.info(f"   RSS                     = {results['metrics']['rss']:.2e}")
@@ -215,8 +215,8 @@ def main():
 
         # 7. Gerar gráficos
         if config['output']['save_figures']:
-            logger.info("\n📊 Gerando gráficos...")
-            figures_dir = results_dir / 'figures'
+            logger.info("\nGerando graficos...")
+            figures_dir = Path(config['output']['figures'].get('save_dir', results_dir / 'figures'))
 
             generate_identification_report(
                 results=results,
@@ -225,16 +225,16 @@ def main():
                 config=config['output']['figures']
             )
 
-            logger.info(f"   ✓ Gráficos salvos em: {figures_dir}")
+            logger.info(f"   Graficos salvos em: {figures_dir}")
 
         logger.info("\n" + "=" * 70)
-        logger.info("✅ IDENTIFICAÇÃO CONCLUÍDA COM SUCESSO!")
+        logger.info("IDENTIFICACAO CONCLUIDA COM SUCESSO!")
         logger.info("=" * 70)
 
         return 0
 
     except Exception as e:
-        logger.error(f"\n❌ ERRO: {str(e)}")
+        logger.error(f"\nERRO: {str(e)}")
         import traceback
         logger.error(traceback.format_exc())
         return 1
