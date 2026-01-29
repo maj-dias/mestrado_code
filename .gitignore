@@ -83,6 +83,9 @@ Thumbs.db
 # Misc
 coverage/
 
+# Documentation (local only)
+docs/
+
 # Python 4 specific notes
 # No há ainda caches oficiais exclusivos do Python 4 além dos padrões acima.
 # Caso surjam diretórios/arquivos específicos do Python 4, adicione-os aqui.
