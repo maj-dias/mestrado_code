@@ -3,36 +3,36 @@
   "description": "Susceptible-Infected-Diagnosed-Ailing-Recognized-Threatened-Healed-Extinct",
   "reference": "Giordano et al. (2020), Nature Medicine",
   "parameters": {
-    "alpha": 0.2665869500526825,
-    "beta": 0.9955715802115059,
-    "epsilon": 0.001,
-    "zeta": 0.06350856259285796,
-    "eta": 0.001,
-    "lambda_": 0.2998433868657235,
-    "mu": 0.18327215192090948,
-    "rho": 0.22395716315423056,
-    "theta": 0.03915397352997977,
-    "kappa": 0.05897062783981505,
-    "nu": 0.2022679464487644,
-    "tau": 0.009837398262243488
+    "alpha": 0.2871017039621676,
+    "beta": 1.0,
+    "epsilon": 0.5,
+    "zeta": 0.05,
+    "eta": 0.45856940623496667,
+    "lambda_": 0.2695603203907331,
+    "mu": 0.01,
+    "rho": 0.026525330536026466,
+    "theta": 0.1,
+    "kappa": 0.009839286946448304,
+    "nu": 0.01,
+    "tau": 0.026422212271963296
   },
   "metrics": {
-    "R2_cases": -11.527076718031235,
-    "R2_deaths": -0.7110690599917873,
-    "R2_recovered": 0.3564330162537406,
-    "R2_active": -5001.79166795081,
-    "MAPE_cases": 98.71603365826067,
-    "MAPE_deaths": 99.92685432658877,
-    "MAPE_recovered": 84.59017449408786,
-    "MAPE_active": 89.11523451284437,
-    "R0": 3.4641190534035204
+    "R2_cases": 0.6743540300003112,
+    "R2_deaths": 0.4855227282176474,
+    "R2_recovered": 0.8071459676680579,
+    "R2_active": 0.49917179473898976,
+    "MAPE_cases": 72.25068883977467,
+    "MAPE_deaths": 83.01115477326337,
+    "MAPE_recovered": 64.10006429212666,
+    "MAPE_active": 77.0204038538146,
+    "R0": 1.5704783064027912
   },
   "optimization": {
-    "global_cost": 7957406901175.046,
-    "local_cost": 7791856984864.463,
+    "global_cost": 72753926694.05919,
+    "local_cost": 66000908176.85843,
     "success": true,
     "global_iterations": 100,
-    "local_iterations": 27
+    "local_iterations": 148
   },
   "config": {
     "model": {
@@ -126,7 +126,7 @@
           14,
           10
         ],
-        "save_dir": "results/figures/identification"
+        "save_dir": "results/figures/identification/sidarthe"
       }
     },
     "validation": {
@@ -140,5 +140,5 @@
     "end": "2020-06-30",
     "days": 122
   },
-  "timestamp": "2026-01-11T16:20:22.464309"
+  "timestamp": "2026-02-21T22:11:12.605028"
 }

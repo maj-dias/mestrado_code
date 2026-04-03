@@ -1,0 +1,156 @@
+# Realistic parameters for COVID-19 optimal control - Brazil 2020
+# Sources listed per section.
+#
+# Usage: loaded by optimal_control_pontryagin_seir2.py,
+#        optimal_control_pontryagin_sir.py,
+#        optimal_control_pontryagin_sidarthe.py
+
+# =============================================================================
+# SIR MODEL
+# Sources:
+#   - Mellan et al. (2020). Science 369(6500): 1210-1214. [R0=2.5 for Brazil]
+#   - Li et al. (2020). NEJM 382:1199-1207. [infectious period ~10 days]
+#   - WHO (2020). Report of the WHO-China Joint Mission on COVID-19.
+# =============================================================================
+sir:
+  model:
+    beta: 0.25       # beta = R0 * gamma = 2.5 * 0.10
+    gamma: 0.10      # 10-day infectious period
+    R0: 2.5
+    N: 210147125
+    description: "SIR with social distancing (u1) and vaccination (u2)"
+
+  initial_conditions:
+    S0: 209000000.0
+    I0: 1000000.0    # ~1M active infections at control start
+    R0_ic: 147125.0  # small recovered population
+
+  control:
+    u1_lockdown:
+      min: 0.0
+      max: 0.80      # Flaxman et al. 2020, Nature (lockdown efficacy cap)
+    u2_vaccination:
+      min: 0.0
+      max: 5000.0    # persons/day vaccinated
+
+# =============================================================================
+# SEIR MODEL (Realistic parameters)
+# Sources:
+#   - Lauer et al. (2020). NEJM. [incubation period 5.1 days -> sigma=1/5.1]
+#   - Mellan et al. (2020). Science. [R0=2.5]
+#   - Li et al. (2020). NEJM. [infectious period ~10 days]
+# =============================================================================
+seir:
+  model:
+    beta: 0.25       # beta = R0 * gamma = 2.5 * 0.10
+    sigma: 0.196     # 1/5.1 days incubation (Lauer et al. 2020, NEJM)
+    gamma: 0.10      # 10-day infectious period
+    R0: 2.5
+    N: 210147125
+    description: "SEIR with social distancing (u1) and vaccination (u2)"
+
+  initial_conditions:
+    S0: 209000000.0
+    E0: 500000.0     # exposed (not yet infectious)
+    I0: 1000000.0    # active infections
+    R0_ic: 647125.0
+
+  control:
+    u1_lockdown:
+      min: 0.0
+      max: 0.80
+    u2_vaccination:
+      min: 0.0
+      max: 5000.0    # persons/day
+
+# =============================================================================
+# SIDARTHE MODEL
+# Sources:
+#   - Giordano et al. (2020). Nature Medicine 26:855-860. [model structure]
+#   - Identified from Brazil COVID-19 data (sidarthe_params.json),
+#     period 2020-03-01 to 2020-06-30.
+#   - Hallal et al. (2020). Lancet Global Health. [IFR and detection rates]
+# =============================================================================
+sidarthe:
+  model:
+    alpha: 0.2871    # transmission rate by asymptomatic undetected (I, D)
+    beta:  1.0000    # transmission rate by symptomatic (A, R) - [0,1]
+    epsilon: 0.50    # detection rate asymptomatic: I -> D
+    zeta: 0.05       # symptom development: I -> A
+    eta: 0.4586      # detection symptomatic: A -> R
+    lambda_r: 0.2696 # recovery of undetected: I -> H
+    mu: 0.01         # recovery symptomatic undetected: A -> H
+    rho: 0.0265      # recovery detected: D -> H, R -> H
+    theta: 0.10      # aggravation asymptomatic detected: D -> T
+    kappa: 0.0098    # aggravation symptomatic detected: R -> T
+    nu: 0.01         # recovery from severe (ICU): T -> H
+    tau: 0.0264      # mortality (ICU): T -> E
+    R0: 1.57
+    N: 210147125
+    description: "SIDARTHE with social distancing (u1) and vaccination (u2)"
+
+  initial_conditions:
+    S0: 208900000.0
+    I0: 50000.0      # asymptomatic undetected
+    D0: 25000.0      # asymptomatic detected
+    A0: 50000.0      # symptomatic undetected
+    R0_ic: 25000.0   # symptomatic detected
+    T0: 5000.0       # severe / ICU
+    H0: 42000.0      # healed
+    E0_ic: 0.0       # extinct (deaths accumulated before horizon)
+
+  control:
+    u1_lockdown:
+      min: 0.0
+      max: 0.80
+    u2_vaccination:
+      min: 0.0
+      max: 5000.0    # persons/day (S -> H)
+
+# =============================================================================
+# ECONOMIC PARAMETERS - BRAZIL 2020
+# Sources:
+#   - Miller (2000). J Transport Econ Policy 34(2). [VSL methodology]
+#   - Hallal et al. (2020). Lancet Global Health. [IFR]
+#   - SUS / CFM (2020). COVID-19 hospitalization cost data.
+#   - IBGE (2021). Contas Nacionais Trimestrais 2020.
+#   - FenaSaude / MS (2021). Vaccine costs per dose + logistics.
+# =============================================================================
+economic:
+  VSL: 5000000.0       # R$ - Value of Statistical Life (~150 x GDP per capita)
+  IFR: 0.015           # 1.5% - COVID-19 Infection Fatality Rate (Brazil 2020)
+  h: 0.05              # 5.0% - hospitalization rate among infectious
+  c_H: 50000.0         # R$ - avg cost per COVID hospitalization (SUS)
+  c_T_icu: 3000.0      # R$ - daily ICU cost per severe patient (T compartment)
+  GDP_daily: 20300000000.0  # R$/day - Brazil GDP 2020 / 365 (IBGE)
+  alpha_GDP: 0.5       # lockdown-GDP elasticity (0.5 = 1 unit lockdown -> 50% GDP loss)
+  c_vaccine: 75.0      # R$/person - dose cost + SUS logistics
+
+# =============================================================================
+# REGULARIZATION (for smooth Pontryagin controls)
+# r1: lockdown - small vs c_G = GDP_daily * alpha_GDP ~ 1e10
+# r2: vaccination - ensures smooth u2 (not bang-bang)
+# =============================================================================
+regularization:
+  r1_lockdown:    10000000.0   # << c_G ~ 1e10
+  r2_vaccination: 0.1          # small but provides smooth u2
+
+# =============================================================================
+# OPTIMAL CONTROL SOLVER (Pontryagin shooting method)
+# =============================================================================
+solver:
+  method: "shooting"
+  n_time_points: 180   # discretization of [0, T]
+  tolerance: 1.0e-4
+  max_iterations: 300
+  horizon_days: 180    # 6-month control horizon
+
+# =============================================================================
+# OUTPUT
+# =============================================================================
+output:
+  save_figures: true
+  figures:
+    format: "eps"
+    dpi: 300
+    figsize: [12, 8]

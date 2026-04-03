@@ -318,3 +318,97 @@ class SIDARTHEModel:
                 f"  População N={self.N:.0f}\n"
                 f"  R₀ (aprox) = {R0:.4f}\n"
                 f")")
+
+
+class SIDARTHEControlledModel:
+    """
+    SIDARTHE model with social distancing (u1) and vaccination (u2) controls.
+
+    States x = [S, I, D, A, Rs, T, H, E]
+    (Rs = Recognized compartment, index 4)
+
+    dS/dt  = -S*(1-u1)*(alpha*(I+D) + beta*(A+Rs))/N - u2
+    dI/dt  =  S*(1-u1)*(alpha*(I+D) + beta*(A+Rs))/N - (eps+zeta+lam_r)*I
+    dD/dt  =  eps*I - (lam_r+rho)*D
+    dA/dt  =  zeta*I - (eta+mu)*A
+    dRs/dt =  eta*A - (theta+kappa+rho)*Rs
+    dT/dt  =  theta*D + kappa*Rs - (nu+tau)*T
+    dH/dt  =  lam_r*I + rho*D + nu*T + mu*A + rho*Rs + u2
+    dE/dt  =  tau*T
+
+    Controls
+    --------
+    u1(t): social distancing, reduces alpha and beta by (1-u1)
+    u2(t): vaccination flow [persons/day], moves S -> H
+    """
+
+    def __init__(self, params: dict, N: float):
+        self.alpha = params['alpha']
+        self.beta_s = params['beta']
+        self.epsilon = params['epsilon']
+        self.zeta = params['zeta']
+        self.eta = params['eta']
+        self.lambda_r = params['lambda_r']
+        self.mu = params['mu']
+        self.rho = params['rho']
+        self.theta = params['theta']
+        self.kappa = params['kappa']
+        self.nu = params['nu']
+        self.tau = params['tau']
+        self.N = N
+
+    def derivatives(self, t: float, y: np.ndarray, u: np.ndarray) -> np.ndarray:
+        S, I, D, A, Rs, T, H, E = y
+        u1, u2 = u
+
+        infection_rate = S * (1.0 - u1) * (
+            self.alpha * (I + D) + self.beta_s * (A + Rs)
+        ) / self.N
+
+        dS = -infection_rate - u2
+        dI = infection_rate - (self.epsilon + self.zeta + self.lambda_r) * I
+        dD = self.epsilon * I - (self.lambda_r + self.rho) * D
+        dA = self.zeta * I - (self.eta + self.mu) * A
+        dRs = self.eta * A - (self.theta + self.kappa + self.rho) * Rs
+        dT = self.theta * D + self.kappa * Rs - (self.nu + self.tau) * T
+        dH = (self.lambda_r * I + self.rho * D + self.nu * T
+              + self.mu * A + self.rho * Rs + u2)
+        dE = self.tau * T
+
+        return np.array([dS, dI, dD, dA, dRs, dT, dH, dE])
+
+    def simulate_with_control(
+        self,
+        initial_conditions: np.ndarray,
+        control_trajectory,
+        t_span: tuple,
+        t_eval: np.ndarray,
+        method: str = 'RK45'
+    ) -> dict:
+        def ode(t, y):
+            u = control_trajectory(t)
+            return self.derivatives(t, y, u)
+
+        sol = solve_ivp(ode, t_span, initial_conditions,
+                        t_eval=t_eval, method=method,
+                        rtol=1e-8, atol=1e-10)
+        if not sol.success:
+            raise RuntimeError(f"Integration failed: {sol.message}")
+
+        u1_traj = np.array([control_trajectory(t)[0] for t in sol.t])
+        u2_traj = np.array([control_trajectory(t)[1] for t in sol.t])
+        return {
+            't': sol.t, 'S': sol.y[0], 'I': sol.y[1], 'D': sol.y[2],
+            'A': sol.y[3], 'Rs': sol.y[4], 'T': sol.y[5],
+            'H': sol.y[6], 'E': sol.y[7],
+            'u1': u1_traj, 'u2': u2_traj
+        }
+
+    def compute_R0(self) -> float:
+        removal_rate_I = self.epsilon + self.zeta + self.lambda_r
+        return (self.alpha + self.beta_s) / removal_rate_I
+
+    def __repr__(self) -> str:
+        return (f"SIDARTHEControlledModel("
+                f"alpha={self.alpha:.4f}, beta={self.beta_s:.4f}, "
+                f"N={self.N:.0f}, R0={self.compute_R0():.4f})")

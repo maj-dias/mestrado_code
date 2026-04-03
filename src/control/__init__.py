@@ -7,7 +7,10 @@ Este módulo contém implementações de controle ótimo para modelos epidemiol�
 - Restrições e limites de controle
 """
 
-from .cost_functions import QuadraticCost
-from .pontryagin import PontryaginSolver
+from .cost_functions import (QuadraticCost, RealisticCostSEIR,
+                             RealisticCostSIR, RealisticCostSIDARTHE)
+from .pontryagin import PontryaginSolver, GenericPontryaginSolver
 
-__all__ = ['QuadraticCost', 'PontryaginSolver']
+__all__ = ['QuadraticCost', 'RealisticCostSEIR', 'RealisticCostSIR',
+           'RealisticCostSIDARTHE', 'PontryaginSolver',
+           'GenericPontryaginSolver']
